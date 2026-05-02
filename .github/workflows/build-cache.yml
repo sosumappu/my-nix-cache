@@ -34,3 +34,18 @@ jobs:
 
             - name: Build Direnv
               run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#direnv
+
+            - name: Build Terraform
+              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#terraform
+
+            - name: Build Terraform
+              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#terraform
+
+            - name: Build Not Much
+              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#notmuch
+
+            - name: Build Aerc
+              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#aerc
+
+            - name: Build Rustc
+              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#rustc
