@@ -1,0 +1,38 @@
+name: Build and Cache Nix Packages
+
+on:
+    workflow_dispatch:
+
+    schedule:
+        - cron: "0 2 * * *"
+
+jobs:
+    build-x86-darwin:
+        runs-on: macos-13
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install Nix
+              uses: cachix/install-nix-action@v27
+              with:
+                  extra_nix_config: |
+                      experimental-features = nix-command flakes
+
+            - name: Setup Cachix
+              uses: cachix/cachix-action@v15
+              with:
+                  name: sosumappu
+                  authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+            # --------------------------------------------------------
+            # PACKAGE BUILDS
+            # use github:NixOS/nixpkgs/nixpkgs-unstable to ensure
+            # --------------------------------------------------------
+
+            - name: Build Deno
+              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#deno
+
+            - name: Build Direnv
+              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#direnv
