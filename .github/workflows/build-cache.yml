@@ -8,20 +8,18 @@ on:
 
 jobs:
     build-x86-darwin:
-        runs-on: macos-13
-
+        runs-on: macos-15-intel
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Install Nix
-              uses: cachix/install-nix-action@v27
+              uses: cachix/install-nix-action@v31
               with:
-                  extra_nix_config: |
-                      experimental-features = nix-command flakes
+                  nix_path: nixpkgs=channel:nixos-unstable
 
             - name: Setup Cachix
-              uses: cachix/cachix-action@v15
+              uses: cachix/cachix-action@v17
               with:
                   name: sosumappu
                   authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
