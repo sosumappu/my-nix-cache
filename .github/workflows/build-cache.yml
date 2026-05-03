@@ -1,51 +1,45 @@
 name: Build and Cache Nix Packages
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
-    schedule:
-        - cron: "0 2 * * *"
+  schedule:
+    - cron: '0 2 * * *'
 
 jobs:
-    build-x86-darwin:
-        runs-on: macos-15-intel
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v5
+  build-x86-darwin:
+    runs-on: macos-15-intel
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-            - name: Install Nix
-              uses: cachix/install-nix-action@v31
-              with:
-                  nix_path: nixpkgs=channel:nixos-unstable
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
 
-            - name: Setup Cachix
-              uses: cachix/cachix-action@v17
-              with:
-                  name: sosumappu
-                  authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v17
+        with:
+          name: sosumappu
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
-            # --------------------------------------------------------
-            # PACKAGE BUILDS
-            # use github:NixOS/nixpkgs/nixpkgs-unstable to ensure
-            # --------------------------------------------------------
+      # --------------------------------------------------------
+      # PACKAGE BUILDS
+      # use github:NixOS/nixpkgs/nixpkgs-unstable to ensure
+      # --------------------------------------------------------
 
-            - name: Build Deno
-              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#deno
+      - name: Build Deno
+        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#deno
 
-            - name: Build Direnv
-              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#direnv
+      - name: Build Direnv
+        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#direnv
 
-            - name: Build Terraform
-              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#terraform
+      - name: Build Not Much
+        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#notmuch
 
-            - name: Build Terraform
-              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#terraform
+      - name: Build Aerc
+        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#aerc
 
-            - name: Build Not Much
-              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#notmuch
-
-            - name: Build Aerc
-              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#aerc
-
-            - name: Build Rustc
-              run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#rustc
+      - name: Build Rustc
+        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#rustc
