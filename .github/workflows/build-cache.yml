@@ -72,7 +72,6 @@ jobs:
   build-darwin:
     runs-on: macos-15-intel
     steps:
-      - uses: DeterminateSystems/nix-installer-action@main
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
