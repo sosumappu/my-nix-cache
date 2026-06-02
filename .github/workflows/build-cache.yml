@@ -1,100 +1,97 @@
-name: Build and Cache Nix Packages
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *'
-jobs:
-  build-x86-darwin:
-    runs-on: macos-15-intel
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v17
-        with:
-          name: sosumappu
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      # --------------------------------------------------------
-      # PACKAGE BUILDS
-      # use github:NixOS/nixpkgs/nixpkgs-unstable to ensure
-      # --------------------------------------------------------
-      - name: Build Deno
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#deno
-      - name: Build Direnv
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#direnv
-      - name: Build Not Much
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#notmuch
-      - name: Build Aerc
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#aerc
-      - name: Build Rustc
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#rustc
-      - name: Build Yazi
-        run: nix build github:sxyazi/yazi#yazi
-      - name: Build Atuin
-        run: nix build github:atuinsh/atuin#atuin
+name: Nix Cache Fill
 
-  build-x86-linux:
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+jobs:
+  build-linux-x86:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v17
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: cachix/cachix-action@v17
         with:
           name: sosumappu
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Build Deno
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#deno
-      - name: Build Direnv
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#direnv
-      - name: Build Not Much
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#notmuch
-      - name: Build Aerc
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#aerc
-      - name: Build Rustc
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#rustc
-      - name: Build Yazi
-        run: nix build github:sxyazi/yazi#yazi
-      - name: Build Atuin
-        run: nix build github:atuinsh/atuin#atuin
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-  build-arm64-linux:
-    runs-on: [self-hosted, berry]
+      - name: Build nixpkgs-unstable packages
+        run: |
+          nix build \
+              nixpkgs/nixpkgs-unstable#deno \
+              nixpkgs/nixpkgs-unstable#direnv \
+              nixpkgs/nixpkgs-unstable#notmuch \
+              nixpkgs/nixpkgs-unstable#aerc \
+              nixpkgs/nixpkgs-unstable#rustc \
+              --no-link --print-build-logs
+
+      - name: Build yazi
+        run: nix build github:sxyazi/yazi#yazi --no-link --print-build-logs
+
+      - name: Build atuin
+        run: nix build github:atuinsh/atuin#atuin --no-link --print-build-logs
+
+  build-linux-arm64:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
+      - uses: docker/setup-qemu-action@v3
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v17
+          platforms: arm64
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            extra-platforms = aarch64-linux
+
+      - uses: cachix/cachix-action@v17
         with:
           name: sosumappu
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      # --------------------------------------------------------
-      # PACKAGE BUILDS
-      # use github:NixOS/nixpkgs/nixpkgs-unstable to ensure
-      # --------------------------------------------------------
-      - name: Build Deno
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#deno
-      - name: Build Direnv
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#direnv
-      - name: Build Not Much
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#notmuch
-      - name: Build Aerc
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#aerc
-      - name: Build Rustc
-        run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#rustc
-      - name: Build Yazi
-        run: nix build github:sxyazi/yazi#yazi
-      - name: Build Atuin
-        run: nix build github:atuinsh/atuin#atuin
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Build nixpkgs-unstable packages (aarch64)
+        run: |
+          nix build \
+              --system aarch64-linux \
+              nixpkgs/nixpkgs-unstable#deno \
+              nixpkgs/nixpkgs-unstable#direnv \
+              nixpkgs/nixpkgs-unstable#notmuch \
+              nixpkgs/nixpkgs-unstable#aerc \
+              nixpkgs/nixpkgs-unstable#rustc \
+              --no-link --print-build-logs
+
+      - name: Build yazi (aarch64)
+        run: |
+          nix build --system aarch64-linux \
+              github:sxyazi/yazi#yazi --no-link --print-build-logs
+
+      - name: Build atuin (aarch64)
+        run: |
+          nix build --system aarch64-linux \
+              github:atuinsh/atuin#atuin --no-link --print-build-logs
+
+  build-darwin:
+    runs-on: macos-15-intel
+    steps:
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - uses: cachix/cachix-action@v17
+        with:
+          name: sosumappu
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Build nixpkgs-unstable packages
+        run: |
+          nix build \
+              nixpkgs/nixpkgs-unstable#deno \
+              nixpkgs/nixpkgs-unstable#direnv \
+              nixpkgs/nixpkgs-unstable#notmuch \
+              nixpkgs/nixpkgs-unstable#rustc \
+              --no-link --print-build-logs
+
+      - name: Build yazi
+        run: nix build github:sxyazi/yazi#yazi --no-link --print-build-logs
+
+      - name: Build atuin
+        run: nix build github:atuinsh/atuin#atuin --no-link --print-build-logs run: nix build github:atuinsh/atuin#atuin
