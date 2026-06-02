@@ -94,4 +94,4 @@ jobs:
         run: nix build github:sxyazi/yazi#yazi --no-link --print-build-logs
 
       - name: Build atuin
-        run: nix build github:atuinsh/atuin#atuin --no-link --print-build-logs run: nix build github:atuinsh/atuin#atuin
+        run: nix build github:atuinsh/atuin#atuin --no-link --print-build-logs
